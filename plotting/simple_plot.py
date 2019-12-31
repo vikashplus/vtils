@@ -7,6 +7,7 @@ sns.set()
 
 def plot(xdata, ydata=None, errdata=None,
     legend:Optional[str]=None, 
+    legend_size:Optional[str]=8, 
     xaxislabel:Optional[str]=None, 
     yaxislabel:Optional[str]=None,
     xaxislimit:Optional[Tuple[float]]=None,
@@ -48,6 +49,7 @@ def plot(xdata, ydata=None, errdata=None,
 
     # finalize
     plt.tight_layout()
+    plt.rc('legend',fontsize=legend_size)
     return h_fig, h_axis, h_plot
 
 def show_plot():

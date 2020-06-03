@@ -5,10 +5,10 @@
 # Good for timing critical applications.
 ###
 
+from multiprocessing import Process, Array
 from pyqtgraph.Qt import QtGui, QtCore
 import numpy as np
 import pyqtgraph as pg
-from multiprocessing import Process, Array
 import sched, time, threading
 from typing import Optional, Tuple
 import collections
@@ -27,6 +27,7 @@ class Line():
         self.x = Array('d', self.buff_sz)
         self.y = Array('d', self.buff_sz)
 
+
 # Simple Remote Viz
 class SRV():
     def __init__(self, 
@@ -42,7 +43,6 @@ class SRV():
             fig_size:Optional[Tuple[int]]=(1000,600),
         ):
         self.buff_sz = buff_sz
-        self.legends = legends
         self.xaxislabel = xaxislabel
         self.yaxislabel = yaxislabel
         self.xaxislimit = xaxislimit
@@ -52,8 +52,10 @@ class SRV():
         self.fig_size = fig_size
 
         # add lines to the plot using legends as keys
+        self.data_cnt = 0 # total data seen so far
         self.buff_idx = 0
         self.n_lines = 0
+        self.legends = []
         self.lines = collections.OrderedDict()
         assert type(legends) is tuple, "legends should be a tuple:"+legends
         for i, legend in enumerate(legends):
@@ -65,6 +67,7 @@ class SRV():
     def add_line(self, buff_sz, legend, color='g'):
         self.lines[legend] = Line(buff_sz=buff_sz, name=legend, color=color)
         self.n_lines += 1
+        self.legends.append(legend)
 
     # start child process for rendering
     def start(self):
@@ -76,24 +79,57 @@ class SRV():
     def close(self):
         self.p.join()
 
-    # Append new data (indexed with keys order) to the cyclic buffer. 
-    def append(self, x_data, y_data):
+    # Append new data to the cyclic buffer.
+    # indexed with keys order; legends order if None
+    def append(self, x_data=None, y_data=None, keys=None):
+        self.data_cnt += 1
+        if keys is None:
+            keys = self.legends
+
+        assert y_data is not None, "y_data can't be none."
+        if x_data is None:
+            if np.isscalar(y_data):
+                x_data = self.data_cnt
+            else:
+                x_data = self.data_cnt * np.ones_like(y_data)
+
         if self.n_lines>1:
-            data_id = 0
-            for legend, line in self.lines.items():
-                line.x[self.buff_idx] = x_data[data_id]
-                line.y[self.buff_idx] = y_data[data_id]
-                data_id += 1
+            for data_id, key in enumerate(keys):
+                self.lines[key].x[self.buff_idx] = x_data[data_id]
+                self.lines[key].y[self.buff_idx] = y_data[data_id]
         else:
-            self.lines[self.legends[0]].x[self.buff_idx] = x_data
-            self.lines[self.legends[0]].y[self.buff_idx] = y_data
+            self.lines[keys[0]].x[self.buff_idx] = x_data
+            self.lines[keys[0]].y[self.buff_idx] = y_data
         self.buff_idx = 0 if (self.buff_idx==self.buff_sz-1) else self.buff_idx+1
+        
 
     # Update entire buffer
-    def update(self, key, x_data, y_data):
-        if key in self.lines.keys():
-            self.lines[key].x[:] = x_data[:] 
-            self.lines[key].y[:] = y_data[:] 
+    def update(self, key, x_data=None, y_data=None):
+        assert key in self.lines.keys(), "Provided key: {} not found".format(key)
+
+        if x_data is None and y_data is None: # clear both
+            x_data = y_data = 0
+
+        # update x
+        if x_data is not None:
+            if np.isscalar(x_data):
+                self.lines[key].x[:] = x_data*np.ones(self.lines[key].buff_sz)
+            else:
+                self.lines[key].x[:] = x_data[:] 
+
+        # update y
+        if y_data is not None:
+            if np.isscalar(y_data):
+                self.lines[key].y[:] = y_data*np.ones(self.lines[key].buff_sz)
+            else:
+                self.lines[key].y[:] = y_data[:]
+
+        self.data_cnt += self.lines[key].buff_sz
+
+    # Clear graph buffer
+    def clear(self, key):
+        self.update(key, x_data=None, y_data=None)
+        self.data_cnt = 0
 
     # refresh plot with new data
     def refresh(self):
@@ -135,9 +171,9 @@ if __name__ == '__main__':
         while running.is_set():
             s = np.sin(2 * np.pi * t)
             t += 0.01
-            srv1.append(t,s)
+            srv1.append(y_data=s) # used incremental indexes for X
             srv2.append([t, t],[s, -s-1])
-            time.sleep(.02)
+            time.sleep(.01)
         print("Done")
         
     #To stop IO thread
@@ -156,7 +192,7 @@ if __name__ == '__main__':
                 yaxislimit=(-2, 3))
 
     # create a second plot
-    srv2 = SRV(fig_name="SRV Example-2", buff_sz=1000,
+    srv2 = SRV(fig_name="SRV Example-2", buff_sz=sz,
                 legends=("srv2:line1", "srv2:line2"), plot_name="Demo plot-2")
 
     # create static buffer and update plot
@@ -166,7 +202,13 @@ if __name__ == '__main__':
     srv1.update("srv1:line1", xx_buff, -yy_buff)
     srv2.update("srv2:line1", xx_buff, yy_buff)
     srv2.update("srv2:line2", xx_buff, -yy_buff)
-    time.sleep(3)
+    time.sleep(2)
+
+    # clear data
+    srv1.clear("srv1:line1")
+    srv2.update("srv2:line1", y_data=1)
+    srv2.update("srv2:line2", y_data=-1)
+    time.sleep(1)
 
     # start IO thread
     t = threading.Thread(target=io, args=(run, srv1, srv2))

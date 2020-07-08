@@ -15,7 +15,11 @@ def plot(xdata, ydata=None, errdata=None,
     subplot_id:Optional[Tuple[int]] = (1,1,1),
     plot_name:Optional[str]=None,
     fig_name:Optional[str]=None,
-    fig_size:Optional[Tuple[int]]=(8,6)):
+    fig_size:Optional[Tuple[int]]=(8,6),
+    marker:Optional[str]=None,
+    marker_size:Optional[int]=5,
+    reset_color_cycle:Optional[bool]=False
+    ):
     
     # get figure
     if fig_name:
@@ -27,13 +31,16 @@ def plot(xdata, ydata=None, errdata=None,
     h_axis = h_fig.add_subplot(subplot_id[0], subplot_id[1], subplot_id[2], 
         label='{}{}{}'.format(subplot_id[0],subplot_id[1],subplot_id[2]))
     
+    if reset_color_cycle:
+        h_axis.set_prop_cycle(None)
+
     # plot
     if ydata is None:
-        h_plot = plt.plot(xdata, label=legend)
+        h_plot = plt.plot(xdata, label=legend, marker=marker, markersize=marker_size)
     else:
-        h_plot = plt.plot(xdata, ydata, label=legend)
+        h_plot = plt.plot(xdata, ydata, label=legend, marker=marker, markersize=marker_size)
     if errdata is not None: # error graph
-        h_axis.fill_between(xdata, ydata-errdata, ydata+errdata, alpha=0.3)
+        h_axis.fill_between(xdata, ydata-errdata, ydata+errdata, alpha=0.3, markersize=marker_size)
 
     # texts
     h_axis.set_xlabel(xaxislabel)

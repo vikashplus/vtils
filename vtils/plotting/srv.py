@@ -13,7 +13,6 @@ import sched, time, threading
 from typing import Optional, Tuple
 import collections
 
-colors = ('r', 'g', 'b', 'c', 'm', 'y')
 
 class Line():
     def __init__(self, buff_sz=100, name=None, color='b'):
@@ -60,7 +59,7 @@ class SRV():
         assert type(legends) is tuple, "legends should be a tuple:"+legends
         for i, legend in enumerate(legends):
             print("Adding lines", i, legend)
-            self.add_line(buff_sz, legend, colors[i%len(colors)])
+            self.add_line(buff_sz, legend, pg.intColor(i))
         # start the process 
         self.start()
 
@@ -101,6 +100,11 @@ class SRV():
             self.lines[keys[0]].x[self.buff_idx] = x_data
             self.lines[keys[0]].y[self.buff_idx] = y_data
         self.buff_idx = 0 if (self.buff_idx==self.buff_sz-1) else self.buff_idx+1
+
+        for data_id, key in enumerate(keys):
+            self.lines[key].x[self.buff_idx] = np.nan
+            self.lines[key].y[self.buff_idx] = np.nan
+
         
 
     # Update entire buffer
@@ -127,8 +131,16 @@ class SRV():
         self.data_cnt += self.lines[key].buff_sz
 
     # Clear graph buffer
-    def clear(self, key):
-        self.update(key, x_data=None, y_data=None)
+    def clear(self, keys:tuple=None):
+        if keys is None:
+            keys = self.legends
+            self.buff_idx = 0
+        else:
+            assert type(keys) is tuple, "keys should be a tuple:"+keys
+
+        for key in keys:
+            self.update(key, x_data=None, y_data=None)
+
         self.data_cnt = 0
 
     # refresh plot with new data
@@ -142,7 +154,7 @@ class SRV():
         app = QtGui.QApplication([])
         win = pg.GraphicsWindow(title=self.fig_name)
         win.resize(self.fig_size[0],self.fig_size[1])
-        
+
         # create plot
         plot = win.addPlot(title=self.plot_name)
         plot.setLabel(axis='left', text=self.xaxislabel)
@@ -153,9 +165,13 @@ class SRV():
         if self.yaxislimit:
             plot.setYRange(min=self.yaxislimit[0], max=self.yaxislimit[1])
         
+        symbols = ['o', 's', 't', 'd', '+']
+        i = 0
         for legend, line in self.lines.items():
-            line.curve = plot.plot(pen=line.color, 
-                connect="finite", symbol='o', name=line.name)
+            i = i+1
+            sym = symbols[i%5]
+            line.curve = plot.plot(pen=pg.mkPen(line.color, width=3.0), symbolSize=5,
+                connect="finite", symbol=sym, name=line.name)
 
         # update trigger
         timer = QtCore.QTimer()
@@ -199,13 +215,15 @@ if __name__ == '__main__':
     xx_buff = np.array(range(sz))/100
     yy_buff = np.sin(xx_buff)
 
+    xx_buff[2] = np.nan
+    yy_buff[2] = np.nan
     srv1.update("srv1:line1", xx_buff, -yy_buff)
     srv2.update("srv2:line1", xx_buff, yy_buff)
     srv2.update("srv2:line2", xx_buff, -yy_buff)
     time.sleep(2)
 
     # clear data
-    srv1.clear("srv1:line1")
+    srv1.clear(("srv1:line1",))
     srv2.update("srv2:line1", y_data=1)
     srv2.update("srv2:line2", y_data=-1)
     time.sleep(1)

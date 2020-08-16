@@ -62,6 +62,9 @@ def plot(xdata, ydata=None, errdata=None,
 def show_plot():
     plt.show()
 
-def save_plot(name):
-    plt.savefig(name)
+def save_plot(name, fig_handle=None):
+    if fig_handle:
+        fig_handle.savefig(name)
+    else:
+        plt.savefig(name)
     print("Saved: "+name)

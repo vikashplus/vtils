@@ -30,6 +30,12 @@ class GamePad():
             self.sensor_data[items] = 0
         self.sensor_data['is_new'] = True
 
+    def okay(self):
+        if (self._GAMEPAD_CLIENT is None):
+            return False
+        else:
+            return True
+
     def start_listener(self):
             # start polling data
             self.read_thread = threading.Thread(target=self.poll_sensors, args=())
@@ -44,7 +50,7 @@ class GamePad():
 
     def read_sensor(self):
         events = self._GAMEPAD_CLIENT.read()
-        
+
         for event in events:
             if event.code in monitor_events:
                 if event.code is 'ABS_RX' or event.code is 'ABS_RY':
@@ -62,22 +68,30 @@ class GamePad():
         sen = self.sensor_data.copy()
         self.sensor_data['is_new'] = False
         return sen
-    
+
+
     def apply_commands(self):
         raise NotImplementedError
 
     def close(self):
-        self.poll = False
-        self.read_thread.join() # wait for the thread to finish
         if self.okay():
-            self._GAMEPAD_CLIENT.close()  # close the connection
-            self._GAMEPAD_CLIENT = None
+            self.poll = False
+            self.read_thread.join() # wait for the thread to finish
             print("GamePad {} Disconnected".format(self._GAMEPAD_CLIENT))
+            self._GAMEPAD_CLIENT = None
         return True
+
+    def __del__(self):
+        self.close()
 
 if __name__ == '__main__':
     pad = GamePad()
-    while(True):
+    quit = False
+    while not quit:
         sensor_data = pad.get_sensors()
         print(sensor_data)
         time.sleep(.25)
+        if sensor_data['BTN_EAST'] == 1:
+            quit = True
+    
+    pad.close()

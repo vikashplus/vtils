@@ -5,7 +5,8 @@ from inputs import devices, get_gamepad
 monitor_events = [  'ABS_X', 'ABS_Y',
                     'ABS_HAT0X', 'ABS_HAT0Y',
                     'ABS_RY', 'ABS_RX',
-                    'BTN_EAST', 'BTN_WEST', 'BTN_NORTH', 'BTN_SOUTH']
+                    'BTN_EAST', 'BTN_WEST', 'BTN_NORTH', 'BTN_SOUTH',
+                    'BTN_TL', 'BTN_TR']
 
 class GamePad():
     """
@@ -18,6 +19,7 @@ class GamePad():
             for device in devices:
                 if device.name == "Logitech Gamepad F710":
                     self._GAMEPAD_CLIENT = device 
+                    print("Gamepad {} found".format(device))
             if self._GAMEPAD_CLIENT is None:
                 print("Gamepad not found. Check connection")
                 quit()
@@ -53,6 +55,7 @@ class GamePad():
 
         for event in events:
             if event.code in monitor_events:
+                self.sensor_data['is_new'] = True # mark addition of new data
                 if event.code is 'ABS_RX' or event.code is 'ABS_RY':
                     self.sensor_data[event.code] = event.state/32767
                 elif event.code is 'ABS_X' or event.code is 'ABS_Y':
@@ -68,7 +71,6 @@ class GamePad():
         sen = self.sensor_data.copy()
         self.sensor_data['is_new'] = False
         return sen
-
 
     def apply_commands(self):
         raise NotImplementedError

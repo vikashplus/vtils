@@ -1,8 +1,9 @@
 ###
 # Simple Remote Viz:
-# A simple graphing tool for streaming data. 
+# A simple graphing tool for streaming data.
 # Creates a background process for windowing/ rendering.
 # Good for timing critical applications.
+# NOTE: pip install pyqt5==5.13.0, otherwise lines wont render
 ###
 
 from multiprocessing import Process, Array
@@ -20,7 +21,7 @@ class Line():
         self.name = name
         self.curve = None
         self.color = color
-        
+
         # multi-process buffers shared between processes for hosting displayed data
         # buffers can be safely accessed from multiple processes
         self.x = Array('d', self.buff_sz)
@@ -29,10 +30,10 @@ class Line():
 
 # Simple Remote Viz
 class SRV():
-    def __init__(self, 
+    def __init__(self,
             buff_sz:int=500,
             legends:Tuple[str]=None,
-            xaxislabel:Optional[str]=None, 
+            xaxislabel:Optional[str]=None,
             yaxislabel:Optional[str]=None,
             xaxislimit:Optional[Tuple[float]]=None,
             yaxislimit:Optional[Tuple[float]]=None,
@@ -40,6 +41,7 @@ class SRV():
             plot_name:Optional[str]=None,
             fig_name:Optional[str]="Simple Remote Viz",
             fig_size:Optional[Tuple[int]]=(1000,600),
+            markers:Optional[Tuple[str]]=("auto",)
         ):
         self.buff_sz = buff_sz
         self.xaxislabel = xaxislabel
@@ -49,6 +51,7 @@ class SRV():
         self.plot_name = plot_name
         self.fig_name = fig_name
         self.fig_size = fig_size
+        self.markers = markers
 
         # add lines to the plot using legends as keys
         self.data_cnt = 0 # total data seen so far
@@ -60,7 +63,7 @@ class SRV():
         for i, legend in enumerate(legends):
             print("Adding lines", i, legend)
             self.add_line(buff_sz, legend, pg.intColor(i))
-        # start the process 
+        # start the process
         self.start()
 
     def add_line(self, buff_sz, legend, color='g'):
@@ -105,8 +108,6 @@ class SRV():
             self.lines[key].x[self.buff_idx] = np.nan
             self.lines[key].y[self.buff_idx] = np.nan
 
-        
-
     # Update entire buffer
     def update(self, key, x_data=None, y_data=None):
         assert key in self.lines.keys(), "Provided key: {} not found".format(key)
@@ -119,14 +120,18 @@ class SRV():
             if np.isscalar(x_data):
                 self.lines[key].x[:] = x_data*np.ones(self.lines[key].buff_sz)
             else:
-                self.lines[key].x[:] = x_data[:] 
+                n_data = len(x_data)
+                self.lines[key].x[:n_data] = x_data[:]
+                self.lines[key].x[n_data:] = np.nan*np.zeros(self.lines[key].buff_sz-n_data)
 
         # update y
         if y_data is not None:
             if np.isscalar(y_data):
                 self.lines[key].y[:] = y_data*np.ones(self.lines[key].buff_sz)
             else:
-                self.lines[key].y[:] = y_data[:]
+                n_data = len(y_data)
+                self.lines[key].y[:n_data] = y_data[:]
+                self.lines[key].y[n_data:] = np.zeros(self.lines[key].buff_sz-n_data)
 
         self.data_cnt += self.lines[key].buff_sz
 
@@ -164,14 +169,20 @@ class SRV():
             plot.setXRange(min=self.xaxislimit[0], max=self.xaxislimit[1])
         if self.yaxislimit:
             plot.setYRange(min=self.yaxislimit[0], max=self.yaxislimit[1])
-        
+
         symbols = ['o', 's', 't', 'd', '+']
-        i = 0
+        i = -1
         for legend, line in self.lines.items():
             i = i+1
-            sym = symbols[i%5]
-            line.curve = plot.plot(pen=pg.mkPen(line.color, width=3.0), symbolSize=5,
-                connect="finite", symbol=sym, name=line.name)
+            if self.markers is None:
+                sym = None
+            elif self.markers[0] == "auto":
+                sym = symbols[i%5]
+            else:
+                print(self.markers, i)
+                sym = self.markers[i]
+            line.curve = plot.plot(pen=pg.mkPen(line.color, width=3.0), symbolSize=10,
+                connect="finite", symbol=sym, symbolBrush=None, name=line.name)
 
         # update trigger
         timer = QtCore.QTimer()
@@ -191,7 +202,7 @@ if __name__ == '__main__':
             srv2.append([t, t],[s, -s-1])
             time.sleep(.01)
         print("Done")
-        
+
     #To stop IO thread
     run = threading.Event()
     run.set()

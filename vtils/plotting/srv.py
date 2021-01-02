@@ -162,6 +162,8 @@ class SRV():
 
         # create plot
         plot = win.addPlot(title=self.plot_name)
+        plot.showGrid(x = True, y = True)
+
         plot.setLabel(axis='left', text=self.xaxislabel)
         plot.setLabel(axis='bottom', text=self.yaxislabel)
         plot.addLegend()
@@ -247,7 +249,7 @@ if __name__ == '__main__':
     run.clear()
     print("Waiting for IO thread to join...")
     t.join()
-    print("Clsoe all graphs. Waiting for graph window process to join...")
+    print("Close all graphs now. \nWaiting for graph window process to join...")
     srv1.close()
     srv2.close()
     print("All process joined successfully.")

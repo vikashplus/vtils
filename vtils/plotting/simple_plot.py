@@ -1,4 +1,8 @@
 import matplotlib as mpl
+
+import warnings
+warnings.filterwarnings("ignore",category=UserWarning)  #to suppress: MatplotlibDeprecationWarning: Adding an axes using the same arguments as a previous axes currently reuses the earlier instance.  In a future version, a new instance will always be created and returned.  Meanwhile, this warning can be suppressed, and the future behavior ensured, by passing a unique label to each axes instance.
+
 mpl.use('TkAgg')
 import matplotlib.pyplot as plt
 from typing import Optional, Tuple

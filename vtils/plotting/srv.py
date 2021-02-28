@@ -6,7 +6,8 @@
 # NOTE: pip install pyqt5==5.13.0, otherwise lines wont render
 ###
 
-from multiprocessing import Process, Array
+import platform
+from multiprocessing import Process, Array, set_start_method
 from pyqtgraph.Qt import QtGui, QtCore
 import numpy as np
 import pyqtgraph as pg
@@ -14,6 +15,7 @@ import sched, time, threading
 from typing import Optional, Tuple
 import collections
 
+SET_RUNTIME = True
 
 class Line():
     def __init__(self, buff_sz=100, name=None, color='b'):
@@ -43,6 +45,11 @@ class SRV():
             fig_size:Optional[Tuple[int]]=(1000,600),
             markers:Optional[Tuple[str]]=("auto",)
         ):
+        global SET_RUNTIME
+        if platform.system() == "Darwin" and SET_RUNTIME:
+            set_start_method('spawn')
+            SET_RUNTIME = False
+
         self.buff_sz = buff_sz
         self.xaxislabel = xaxislabel
         self.yaxislabel = yaxislabel
@@ -183,7 +190,7 @@ class SRV():
             else:
                 print(self.markers, i)
                 sym = self.markers[i]
-            line.curve = plot.plot(pen=pg.mkPen(line.color, width=3.0), symbolSize=10,
+            line.curve = plot.plot(pen=pg.mkPen(line.color, width=3.0), symbolSize=7,
                 connect="finite", symbol=sym, symbolBrush=None, name=line.name)
 
         # update trigger

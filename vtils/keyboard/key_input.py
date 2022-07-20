@@ -1,8 +1,11 @@
 # Non Blocking keyboard listener
 # based on https://pynput.readthedocs.io/en/latest/keyboard.html#monitoring-the-keyboard
 # Running pynput over SSH generally will not work: https://pynput.readthedocs.io/en/latest/limitations.html
-#   Workaround: The environment variable $DISPLAY must be set
-#   example:: DISPLAY=:0 python key_input.py (this will capture events from keyboard directly connect to the remote machine)
+#   Workaround1: The environment variable $DISPLAY must be set
+#       example:: DISPLAY=:0 python key_input.py (this will capture events from keyboard directly connect to the remote machine)
+#   Workaround2: Enable xforwarding.
+#       Steps on remote: a) Edit /etc/ssh/ssh_config b) Mark 'X11Forwarding yes' c) Save+Exit c) systemctl restart sshd
+#       Steps on local: a) ssh -X remote
 
 
 from pynput import keyboard
@@ -59,5 +62,5 @@ if __name__ == '__main__':
         if sen is not None:
             print(sen, end=", ", flush=True)
         time.sleep(.01)
-        
+
     ky.close()

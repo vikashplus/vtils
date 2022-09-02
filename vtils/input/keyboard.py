@@ -18,7 +18,7 @@ def prompt(msg):
         print(msg)
 
 
-class Key():
+class KeyInput():
     def __init__(self):
         self.key = None
 
@@ -44,7 +44,7 @@ class Key():
             # Stop listener
             return False
 
-    def get_sensor(self):
+    def get_sensors(self):
         return self.key
 
     def close(self):
@@ -54,11 +54,11 @@ class Key():
 
 
 if __name__ == '__main__':
-    ky = Key()
+    ky = KeyInput()
     sen = None
     print("Press 'q' to stop listening")
     while sen != 'q':
-        sen = ky.get_sensor()
+        sen = ky.get_sensors()
         if sen is not None:
             print(sen, end=", ", flush=True)
         time.sleep(.01)

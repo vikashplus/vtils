@@ -18,7 +18,7 @@ class GamePad():
         if self._GAMEPAD_CLIENT is None:
             for device in devices:
                 if device.name == "Logitech Gamepad F710":
-                    self._GAMEPAD_CLIENT = device 
+                    self._GAMEPAD_CLIENT = device
                     print("Gamepad {} found".format(device))
             if self._GAMEPAD_CLIENT is None:
                 print("Gamepad not found. Check connection")
@@ -42,7 +42,7 @@ class GamePad():
             # start polling data
             self.read_thread = threading.Thread(target=self.poll_sensors, args=())
             self.read_thread.start()
-        
+
     def poll_sensors(self):
         print("Start polling gamepad sensor data")
         self.poll = True
@@ -95,5 +95,5 @@ if __name__ == '__main__':
         time.sleep(.25)
         if sensor_data['BTN_EAST'] == 1:
             quit = True
-    
+
     pad.close()

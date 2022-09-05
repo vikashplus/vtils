@@ -1,13 +1,12 @@
-"""Driver class for SpaceMouse controller.
+DESC = """Driver class for SpaceMouse controller.
 
-This class provides a driver support to SpaceMouse. (developed on mac os)
-To set up a new SpaceMouse controller:
-    1. Download and install driver from https://www.3dconnexion.com/service/drivers.html
-    2. Install hidapi library through pip
-       (make sure you run uninstall hid first if it is installed).
-    3. Make sure SpaceMouse is connected before running the script
-    4. (Optional) Based on the model of SpaceMouse, you might need to change the
-       vendor id and product id that correspond to the device.
+This class provides a driver support to SpaceMouse. (developed on mac os)\n
+To set up a new SpaceMouse controller:\n
+    1. Install hidapi library through pip
+       (make sure you run uninstall hid first if it is installed).\n
+    2. Make sure SpaceMouse is connected before running the script\n
+    3. (Optional) Based on the model of SpaceMouse, you might need to change the
+       vendor id and product id that correspond to the device.\n
 
 For Linux support, you can find open-source Linux drivers and SDKs online.
     See http://spacenav.sourceforge.net/
@@ -19,6 +18,7 @@ import threading
 import time
 import collections
 import pprint
+import click
 try:
     import hid
 except ModuleNotFoundError as exc:
@@ -27,6 +27,7 @@ except ModuleNotFoundError as exc:
         "Only macOS is officially supported. Install the additional "
         "requirements with `pip install -r requirements-extra.txt`"
     ) from exc
+
 
 class SpaceMouse():
     """
@@ -46,13 +47,13 @@ class SpaceMouse():
             print("Opening SpaceMouse device")
             try:
                 self.device = hid.device()
+                self.device.open(vendor_id, product_id)  # SpaceMouse
             except:
+                print(f"Can't find device using vendor_id={vendor_id}, product_id={product_id}. Search the devices printed below for correct configurations")
                 for device in hid.enumerate():
-                    if device.product_string == 'Space Navigator':
+                    if "Space" in device['product_string'] or '3Dconnexion' in device['manufacturer_string']:
                         print(device)
-                print(f"Can't find device using vendor_id={vendor_id}, product_id={product_id}. Search the devices printed about for correct configurations")
                 quit()
-            self.device.open(vendor_id, product_id)  # SpaceMouse
             print("Manufacturer: %s" % self.device.get_manufacturer_string())
             print("Product: %s" % self.device.get_product_string())
             self.start_listener()
@@ -170,8 +171,11 @@ class SpaceMouse():
     def __del__(self):
         self.close()
 
-if __name__ == '__main__':
-    sm = SpaceMouse()
+@click.command(help=DESC)
+@click.option('-vi', '--vendor_id', type=int, default=9583, help=('Spacemouse vendor id'))
+@click.option('-pi', '--product_id', type=int, default=50741, help=('Spacemouse product id'))
+def spacemouse_demo(vendor_id, product_id):
+    sm = SpaceMouse(vendor_id=vendor_id, product_id=product_id)
     quit = False
     print("Press left button to stop")
     while not quit:
@@ -182,3 +186,6 @@ if __name__ == '__main__':
             quit = True
 
     sm.close()
+
+if __name__ == '__main__':
+    spacemouse_demo()

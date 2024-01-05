@@ -135,8 +135,10 @@ def bar(xdata, ydata=None,
     if ydata is None:
         xind = np.arange(len(xdata)) + 0.1*len(h_axis.containers)
         h_bar = h_axis.bar(xind, xdata, width, yerr=errdata, label=legend)
+        h_axis.set_xticks(ticks=xind)
     else:
         h_bar = h_axis.bar(xdata, ydata, width, yerr=errdata, label=legend)
+        h_axis.set_xticks(ticks=xdata)
 
     if reset_color_cycle:
         h_axis.set_prop_cycle(None)
@@ -156,7 +158,6 @@ def bar(xdata, ydata=None,
     if yaxislimit:
         h_axis.set_ylim(yaxislimit)
 
-    h_axis.set_xticks(ticks=xdata)
     if xticklabels:
         h_axis.set_xticklabels(xticklabels, rotation=xtickrotation)
 
@@ -174,9 +175,9 @@ if __name__ == '__main__':
     data3 = np.random.uniform(size=10)
 
     print("Testing 2D plots")
-    plot(data1, fig_name="test 2dplots", legend="data1", subplot_id=(2,1,1))
-    plot(data2, fig_name="test 2dplots", legend="data2", subplot_id=(2,1,1))
-    plot(data3, fig_name="test 2dplots", legend="data3", subplot_id=(2,1,1))
+    plot(data1, fig_name="test 2dplots", plot_name="top_plot", legend="data1", subplot_id=(2,1,1))
+    plot(data2, fig_name="test 2dplots", plot_name="top_plot", legend="data2", subplot_id=(2,1,1))
+    plot(data3, fig_name="test 2dplots", plot_name="top_plot", legend="data3", subplot_id=(2,1,1))
 
     print("Testing bar plots")
     bar(data1, fig_name="test 2dplots", legend="data1", subplot_id=(2,1,2))
@@ -184,4 +185,3 @@ if __name__ == '__main__':
     bar(data3, fig_name="test 2dplots", legend="data3", subplot_id=(2,1,2))
 
     show_plot()
-

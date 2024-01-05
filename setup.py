@@ -25,6 +25,6 @@ setup(
     url='https://github.com/vikashplus/vtils.git',
     author='Vikash Kumar',
     install_requires=[
-         'matplotlib', 'pynput', 'seaborn'
+         'matplotlib', 'pynput', 'seaborn', 'pyqtgraph', 'pyqt5'
     ],
 )

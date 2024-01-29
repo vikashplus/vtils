@@ -10,7 +10,7 @@ monitor_events = [  'ABS_X', 'ABS_Y',
                     'BTN_START', 'BTN_SELECT',
                     'BTN_THUMBL', 'BTN_THUMBR',
                     'BTN_MODE', # Home (XBox) menu button
-                    "ABS_Z", 'ABS_RZ'] # NOTE: might be specific to Xbox 360 analog triggers
+                    "ABS_Z", 'ABS_RZ']
 
 class GamePad():
     """
@@ -57,7 +57,6 @@ class GamePad():
     def read_sensor(self):
         events = self._GAMEPAD_CLIENT.read()
         
-        # TODO: make the analog axis return normalized float for finer control ?
         for event in events:
             if event.code in monitor_events:
                 self.sensor_data['is_new'] = True # mark addition of new data

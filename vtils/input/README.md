@@ -3,6 +3,7 @@
 ## Gamepad
 
 ### Linux
+
 **Dependencies**
 
 ```bash
@@ -41,7 +42,7 @@ git clone https://github.com/FreeSpacenav/spacenavd.git
 cd spacenavd
 ./configure
 make
-sudo make install # Installs it to /usr/local/bin, so either softlink to your own bin, or add it to your PATH env variable
+sudo make install # Installs it to /usr/local/bin, so either softlink to your own bin, or add it to your PATH The required libraries and drivers forenv variable
 ```
 
 Next, install the spacenav driver `libspnav`:

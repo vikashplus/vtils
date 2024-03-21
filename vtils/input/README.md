@@ -29,10 +29,10 @@ For Linux support, you can find open-source Linux drivers and SDKs online at htt
 
 **Dependencies**
 
-Install `hdiapi` on Linux to enable access to the spacemouse device using the `hdi` API in Python.
+Install `hidapi` on Linux to enable access to the spacemouse device using the `hid` API in Python.
 
 ```bash
-pip install hdiapi
+pip install hidapi
 ```
 
 Install and configure the open-source spacenav daemon `spnavd`:

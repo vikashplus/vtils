@@ -6,7 +6,7 @@ Various useful utilities
 
 ```bash
 pip install inputs # Gamepads
-pip install hdiapi # Spacemouse, Linux documentation linked below.
+pip install hidapi # Spacemouse, Linux documentation linked below.
 ```
 
 # Supported devices for Robohive tele-operation

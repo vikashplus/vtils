@@ -162,9 +162,9 @@ def plot(xdata, ydata=None, errdata=None, errmin=None, errmax=None,
 
     # plot
     if ydata is None:
-        h_plot = plt.plot(xdata, label=legend, marker=marker, markersize=marker_size, linestyle=linestyle, linewidth=linewidth, color=color, alpha=alpha)
+        h_plot = h_axis.plot(xdata, label=legend, marker=marker, markersize=marker_size, linestyle=linestyle, linewidth=linewidth, color=color, alpha=alpha)
     else:
-        h_plot = plt.plot(xdata, ydata, label=legend, marker=marker, markersize=marker_size, linestyle=linestyle, linewidth=linewidth, color=color, alpha=alpha)
+        h_plot = h_axis.plot(xdata, ydata, label=legend, marker=marker, markersize=marker_size, linestyle=linestyle, linewidth=linewidth, color=color, alpha=alpha)
 
     # bands
     if errdata is not None: # error graph
@@ -187,12 +187,29 @@ def show_plot():
     plt.show()
 
 
-def save_plot(name, fig_handle=None):
+# def save_plot(name, fig_handle=None):
+#     if fig_handle:
+#         fig_handle.savefig(name)
+#     else:
+#         plt.savefig(name)
+#     print("Saved: "+name)
+
+def save_plot(name, fig_handle=None, hspace=0.5, wspace=0.3):
+    """Save the plot with adjusted subplot spacing.
+
+    Args:
+        name: The filename to save the plot as.
+        fig_handle: The figure handle to save. If None, saves the current figure.
+        hspace: The height space between rows of subplots.
+        wspace: The width space between columns of subplots.
+    """
     if fig_handle:
+        fig_handle.subplots_adjust(hspace=hspace, wspace=wspace)
         fig_handle.savefig(name)
     else:
+        plt.subplots_adjust(hspace=hspace, wspace=wspace)
         plt.savefig(name)
-    print("Saved: "+name)
+    print("Saved: " + name)
 
 
 def bar(xdata,
@@ -279,10 +296,13 @@ def text(positions,
 
     # Add text to the specified subplot
     for (x, y), text in zip(positions, texts):
-        h_axis.text(x, y, text, fontsize=fontsize, color=color, ha=ha, va=va)
+        h_text = h_axis.text(x, y, text, fontsize=fontsize, color=color, ha=ha, va=va)
 
     # fix axis
     customize_axis(h_axis, border_color=border_color, xticks=[], yticks=[], **kwargs)
+
+    return h_fig, h_axis, h_text
+
 
 
 
@@ -301,23 +321,30 @@ if __name__ == '__main__':
     print("Testing 2D plots")
     plot(data1, fig_name="test 2dplots", plot_name="top_plot", legend="data1", subplot_id=(n_splts,1,1))
     plot(data2, fig_name="test 2dplots", plot_name="top_plot", legend="data2", subplot_id=(n_splts,1,1))
-    plot(data3, fig_name="test 2dplots", plot_name="top_plot", legend="data3", subplot_id=(n_splts,1,1), xaxislabel="time(s)")
 
     print("Testing bar plots")
     bar(data1, fig_name="test 2dplots", legend="data1", subplot_id=(n_splts,1,2))
     bar(data2, fig_name="test 2dplots", legend="data2", subplot_id=(n_splts,1,2), yaxislabel="data(m)")
-    bar(data3, fig_name="test 2dplots", legend="data3", subplot_id=(n_splts,1,2))
 
     print("Testing top bottom plots")
     min_val = data1
     max_val = data2
     bar(xdata=ticks, height=data2-data1, bottom=data1, fig_name="test 2dplots", legend="range", subplot_id=(n_splts,1,3), xticklabels=ticks, xtickrotation=90, color='c')
     bar(data1, fig_name="test 2dplots", legend="min_val", subplot_id=(n_splts,1,3))
-    bar(data2, fig_name="test 2dplots", legend="max_val", subplot_id=(n_splts,1,3), plot_name="bottom_plot", )
 
     print("Testing text addition")
     text(fig_name="test 2dplots", subplot_id=(n_splts,1,4), plot_name="signature text",
-        positions = [(0.05, 0.5), (0.05, 0.7)],
+        positions = [(0.05, 0.8), (0.05, 0.6)],
         texts = ['Text A', 'Text B'],
          )
+
+    print("Testing out of order retrieval")
+    plot(data3, fig_name="test 2dplots", plot_name="top_plot", legend="data3", subplot_id=(n_splts,1,1), xaxislabel="time(s)")
+    bar(data3, fig_name="test 2dplots", legend="data3", subplot_id=(n_splts,1,2))
+    bar(data2, fig_name="test 2dplots", legend="max_val", subplot_id=(n_splts,1,3), plot_name="bottom_plot", )
+    text(fig_name="test 2dplots", subplot_id=(n_splts,1,4), plot_name="signature text",
+        positions = [(0.05, 0.4)],
+        texts = ['Text C'],
+         )
+
     show_plot()

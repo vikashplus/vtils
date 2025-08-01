@@ -272,6 +272,8 @@ def text(positions,
         ha='center',
         va='center',
         border_color='lightgrey',
+        xticks=[],
+        yticks=[],
         **kwargs
         ):
     """
@@ -299,12 +301,47 @@ def text(positions,
         h_text = h_axis.text(x, y, text, fontsize=fontsize, color=color, ha=ha, va=va)
 
     # fix axis
-    customize_axis(h_axis, border_color=border_color, xticks=[], yticks=[], **kwargs)
+    customize_axis(h_axis, border_color=border_color, xticks=xticks, yticks=yticks, **kwargs)
 
     return h_fig, h_axis, h_text
 
 
+# add image
+def image(image_path, position=(0.5, 0.5), subplot_id=(1, 1, 1), fig_name=None, fig_size=(8, 6), zoom=1.0, xticks=[], yticks=[], **kwargs):
+    """Adds an image to a specified subplot.
 
+    Args:
+        image_path: Path to the image file.
+        position: Tuple (x, y) indicating the position of the image in the subplot.
+        subplot_id: Tuple indicating the subplot configuration (nrows, ncols, index).
+        fig_name: Optional name for the figure.
+        fig_size: Size of the figure (width, height).
+        zoom: Zoom factor for the image.
+    """
+    # get figure
+    h_fig = get_or_create_figure(fig_name, fig_size=fig_size)
+
+    # recover/add axis
+    h_axis = get_or_create_axis(h_fig, subplot_id)
+
+    # Load and scale the image
+    img = plt.imread(image_path)
+    # if zoom != 1.0:
+    #     img = scipy.ndimage.zoom(img, (zoom, zoom, 1), order=1)
+
+    # Calculate extent based on zoom and position
+    height, width = img.shape[:2]
+    x0 = position[0] - width / (2 * max(width, height))
+    x1 = position[0] + width / (2 * max(width, height))
+    y0 = position[1] - height / (2 * max(width, height))
+    y1 = position[1] + height / (2 * max(width, height))
+
+    h_axis.imshow(img, extent=(x0, x1, y0, y1))
+
+    # fix axis
+    customize_axis(h_axis, xticks=xticks, yticks=yticks, **kwargs)
+
+    return h_fig, h_axis
 
 
 if __name__ == '__main__':
@@ -333,17 +370,24 @@ if __name__ == '__main__':
     bar(data1, fig_name="test 2dplots", legend="min_val", subplot_id=(n_splts,1,3))
 
     print("Testing text addition")
-    text(fig_name="test 2dplots", subplot_id=(n_splts,1,4), plot_name="signature text",
-        positions = [(0.05, 0.8), (0.05, 0.6)],
+    text(fig_name="test 2dplots", subplot_id=(n_splts,2,n_splts*2-1), plot_name="signature text",
+        positions = [(0.1, 0.8), (0.1, 0.6)],
         texts = ['Text A', 'Text B'],
          )
+
+    # load the image
+    import os
+    curr_dir = os.path.dirname(os.path.abspath(__file__))
+    dummy_image_path = os.path.join(curr_dir, "dummy.png")
+    image(dummy_image_path, position=(0.5, 0.5), subplot_id=(n_splts,2,n_splts*2), fig_name="test 2dplots", zoom=1.0)
+
 
     print("Testing out of order retrieval")
     plot(data3, fig_name="test 2dplots", plot_name="top_plot", legend="data3", subplot_id=(n_splts,1,1), xaxislabel="time(s)")
     bar(data3, fig_name="test 2dplots", legend="data3", subplot_id=(n_splts,1,2))
     bar(data2, fig_name="test 2dplots", legend="max_val", subplot_id=(n_splts,1,3), plot_name="bottom_plot", )
-    text(fig_name="test 2dplots", subplot_id=(n_splts,1,4), plot_name="signature text",
-        positions = [(0.05, 0.4)],
+    text(fig_name="test 2dplots", subplot_id=(n_splts,2,n_splts*2-1), plot_name="signature text",
+        positions = [(0.1, 0.4)],
         texts = ['Text C'],
          )
 
